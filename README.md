@@ -6,3 +6,5 @@ Egészégügyi mérnök MSc. diplomamunka
 **thesis branch:** diplomamunka .pdf formátumban
 
 **basic-opticalflow branch:** alap MATLAB projekt, amely tartalmazza az összes opticalflow implementációt. Élőben feldolgozza a kamera képét és ráhelyezi az elmozdulás vektorait. 
+
+**basic-motion-detection branch:** alap mozgásérzékelős MATLAB alkalmazás OpticalFlow alapon
