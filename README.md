@@ -1,7 +1,7 @@
 # BME-Diplomaterv
 Egészégügyi mérnök MSc. diplomamunka
 
-**GitHub issues** ide írom a feladatokat és az állapotot is, könnyen kommentelhető bárki számára
+**GitHub issues:** ide írom a feladatokat és az állapotot is, könnyen kommentelhető bárki számára
 
 **thesis branch:** diplomamunka .pdf formátumban
 
