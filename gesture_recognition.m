@@ -1,14 +1,18 @@
-% Initialization
-% Create the Video Device System object.
-vidDevice = imaq.VideoDevice('winvideo', 1, 'MJPG_640x480', ...
+% Better use the existing camera object if it was used previously but the process
+% was aborted and it still exists.
+if exist('vidDevice', 'var') == 0   
+   % Initialization
+   % Create the Video Device System object.
+   vidDevice = imaq.VideoDevice('winvideo', 1, 'MJPG_640x480', ...
                              'ROI', [1 1 640 480], ...
                              'ReturnedColorSpace', 'rgb', ...
                              'DeviceProperties.Brightness', 128, ...
                              'DeviceProperties.Sharpness', 5);
+end
 
 % Choose optical flow algorithm and customize it
 % returns an optical flow object used to estimate the direction and
-opticalFlowType = 'Farneback';
+opticalFlowType = 'LK';
 
 switch opticalFlowType         
    case 'Farneback'
@@ -29,11 +33,18 @@ end
 
 % Set up for stream
 nFrames = 0;
-while (nFrames<100)     % Process for the first 200 frames.    
+while (nFrames<100)     % Process for the first selected amount frames  
    % Acquire single frame from imaging device.
    rgbData = step(vidDevice);    
    % Compute the optical flow for that particular frame.
    optFlow = estimateFlow(optical,rgb2gray(rgbData));
+   %iterator = 0;
+   %for i = 1:numel(optFlow.Orientation)
+   % element =  optFlow.Orientation(i);
+   % if(element)>1
+   %     iterator = iterator + 1;
+   % end
+  % end
    % Display acquired frame
    imshow(rgbData)   
    hold on
@@ -45,7 +56,7 @@ while (nFrames<100)     % Process for the first 200 frames.
    pause(0.01)
 end
 
-% Release
-% Here you call the release method on the System objects to close any open 
-% files and devices.
+% Close figures
+close;
+% Release camera resource
 release(vidDevice);
