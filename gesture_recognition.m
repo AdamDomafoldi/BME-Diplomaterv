@@ -1,10 +1,13 @@
+% Set resolution
+width = 320;
+height = 240; 
 % Better use the existing camera object if it was used previously but the process
 % was aborted and it still exists.
-if exist('vidDevice', 'var') == 0   
+if exist('vidDevice', 'var') == 0
    % Initialization
    % Create the Video Device System object.
    vidDevice = imaq.VideoDevice('winvideo', 1, 'MJPG_640x480', ...
-                             'ROI', [1 1 640 480], ...
+                             'ROI', [1 1 width height], ...
                              'ReturnedColorSpace', 'rgb', ...
                              'DeviceProperties.Brightness', 128, ...
                              'DeviceProperties.Sharpness', 5);
@@ -35,21 +38,41 @@ end
 nFrames = 0;
 while (nFrames<100)     % Process for the first selected amount frames  
    % Acquire single frame from imaging device.
-   rgbData = step(vidDevice);    
+   rawImage = step(vidDevice);
+   % Mirror the image (flip the matrix by rows and columns)
+   rgbData = flip(rawImage,1); 
+   rgbData = flip(rawImage,2);    
    % Compute the optical flow for that particular frame.
    optFlow = estimateFlow(optical,rgb2gray(rgbData));
-   %iterator = 0;
-   %for i = 1:numel(optFlow.Orientation)
-   % element =  optFlow.Orientation(i);
-   % if(element)>1
-   %     iterator = iterator + 1;
-   % end
-  % end
-   % Display acquired frame
+   
+   leftImage = optFlow.Magnitude(1:height,1:width / 2 - 1);   
+   rightImage = optFlow.Magnitude(1:height, width / 2:width);   
+   
+   binaryRight = rightImage > 0.2;
+   binaryLeft = leftImage > 0.2;
+   
+   nL = nnz(binaryLeft);
+   nR = nnz(binaryRight);
+   
+   if(nR > 150)
+       disp('Jobb oldal')
+   end
+   
+   if(nL > 150)
+       disp('Bal oldal')
+   end  
+
+   % Display acquired frame 
    imshow(rgbData)   
-   hold on
+   hold on   
+   
+   %plot a separation line
+   x = [160, 160]; 
+   y = [1, 240]; 
+   plot (x, y)  
    % Plot vectors
    plot(optFlow ,'DecimationFactor',[5 5],'ScaleFactor',25)
+   
    hold off    
    % Increment frame count
    nFrames = nFrames + 1;  
