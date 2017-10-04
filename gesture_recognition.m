@@ -20,8 +20,8 @@ opticalFlowType = 'LK';
 switch opticalFlowType         
    case 'Farneback'
       optical = opticalFlowFarneback('FilterSize',500);
-    case 'LK'
-      optical = opticalFlowLK('NoiseThreshold',0.01); 
+    case 'LK'      
+      optical = calibrateNoiseThreshold(0.02, vidDevice);
     case 'LKDoG'
       optical = opticalFlowLKDoG('NumFrames', 3);
     case 'HS'
@@ -83,3 +83,30 @@ end
 close;
 % Release camera resource
 release(vidDevice);
+
+function optical = calibrateNoiseThreshold(threshold, vidDevice)
+    nFrames = 0;
+    nonZeroComponents = 0;
+    while (nFrames < 12)  
+        opticalFlow = opticalFlowLK('NoiseThreshold',threshold); 
+        % Acquire single frame from imaging device.
+        rawImage = step(vidDevice);  
+        % Compute the optical flow for that particular frame.
+        optFlow = estimateFlow(opticalFlow,rgb2gray(rawImage));  
+        % Count non zero elements (pixels that have magnitude value)
+        nonZeroComponents = nonZeroComponents + nnz(optFlow.Magnitude);
+    
+        nFrames = nFrames + 1;    
+    end;
+   
+    if(nonZeroComponents > 0)
+        disp('Calibration in progress');  
+        disp(strcat({'LK noiseThreshold increased to'}, {' '}, {num2str(threshold*2)}));
+        % Recursive call
+        optical = calibrateNoiseThreshold(threshold * 2, vidDevice);
+    end      
+   
+    disp('Calibration finished');    
+     
+    optical = opticalFlow;
+end
