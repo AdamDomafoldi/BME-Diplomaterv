@@ -87,7 +87,7 @@ release(vidDevice);
 function optical = calibrateNoiseThreshold(threshold, vidDevice)
     nFrames = 0;
     nonZeroComponents = 0;
-    while (nFrames < 12)  
+    while (nFrames < 6)  
         opticalFlow = opticalFlowLK('NoiseThreshold',threshold); 
         % Acquire single frame from imaging device.
         rawImage = step(vidDevice);  
