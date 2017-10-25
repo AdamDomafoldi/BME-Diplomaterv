@@ -1,3 +1,6 @@
+
+% Get user input
+saveImages = input('Save images? 1 or 0: ');
 % Set resolution
 width = 320;
 height = 240; 
@@ -71,7 +74,11 @@ while (nFrames<100)     % Process for the first selected amount frames
    y = [1, 240]; 
    plot (x, y)  
    % Plot vectors
-   plot(optFlow ,'DecimationFactor',[5 5],'ScaleFactor',25)
+   plot(optFlow ,'DecimationFactor',[5 5],'ScaleFactor',25)  
+   
+   if(saveImages)    
+    saveas(gcf,['snapshots/image' num2str(nFrames) '.png']);   
+   end
    
    hold off    
    % Increment frame count
@@ -79,15 +86,31 @@ while (nFrames<100)     % Process for the first selected amount frames
    pause(0.01)
 end
 
+ if(saveImages)    
+    makeVideoFromImages(99);   
+ end
+
 % Close figures
 close;
 % Release camera resource
 release(vidDevice);
 
+function makeVideoFromImages(numberOfImages)
+    writerObj = VideoWriter([datestr(now,'yyyy-mm-dd__HH-MM') '.mp4'],'MPEG-4');
+    writerObj.FrameRate = 15;
+    open(writerObj);
+    for K = 0 : numberOfImages
+      filename = sprintf('snapshots/image%d.png', K);
+      thisimage = imread(filename);
+      writeVideo(writerObj, thisimage);
+    end
+    close(writerObj);
+end
+
 function optical = calibrateNoiseThreshold(threshold, vidDevice)
     nFrames = 0;
     nonZeroComponents = 0;
-    while (nFrames < 6)  
+    while (nFrames < 10)  
         opticalFlow = opticalFlowLK('NoiseThreshold',threshold); 
         % Acquire single frame from imaging device.
         rawImage = step(vidDevice);  
