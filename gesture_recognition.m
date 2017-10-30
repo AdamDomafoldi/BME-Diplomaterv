@@ -40,92 +40,49 @@ end
 % Set up for stream
 nFrames = 0;
 while (nFrames<100)     % Process for the first selected amount frames  
-   % Acquire single frame from imaging device.
-   rawImage = step(vidDevice);
-   % Mirror the image (flip the matrix by rows and columns)
-   rgbData = flip(rawImage,1); 
-   rgbData = flip(rawImage,2);    
-   % Compute the optical flow for that particular frame.
-   optFlow = estimateFlow(optical,rgb2gray(rgbData));
-   
-   leftImage = optFlow.Magnitude(1:height,1:width / 2 - 1);   
-   rightImage = optFlow.Magnitude(1:height, width / 2:width);   
-   
-   binaryImage = optFlow.Magnitude > 1.5;
- 
-   
+    % Acquire single frame from imaging device.
+    rawImage = step(vidDevice);
+    % Mirror the image (flip the matrix by rows and columns)
+    rgbData = flip(rawImage,1); 
+    rgbData = flip(rawImage,2);    
+    % Compute the optical flow for that particular frame.
+    optFlow = estimateFlow(optical,rgb2gray(rgbData));
+    % Filter pixels by magnitude
+    binaryImage = optFlow.Magnitude > 1.2;    
+    [y, x] = find(binaryImage);  % x and y are column vectors.
+    % Create single conforming 2-D boundary around the points
+    j = boundary(x,y,1);
+    % Display acquired camera frame 
+    imshow(rgbData)       
     
+    hold on;
+    % Plot boundary lines
+    plot(x(j),y(j));
    
-  % triangulation(binaryRight);
-  
-  [y, x] = find(binaryImage)  % x and y are column vectors.
-
-  
- % x = gallery('uniformdata',30,1,1);
-%y = gallery('uniformdata',30,1,10);
-%plot(x,y,'.')
- 
-%k = boundary(x,y);
-   
-j = boundary(x,y,1);
-%j = convhull(x,y);
-%A = polyarea(x,y)
-    imshow(rgbData)   
-    
-    cent = [mean(x) mean(y)]
-    
-    
-    
-hold on;
-plot(x(j),y(j));
-    if(saveImages)    
-     saveas(gcf,['snapshots/image' num2str(nFrames) '.png']);   
+    if(isempty(x) == 0 && isempty(y) == 0)
+        cent = [mean(x) mean(y)]
+        plot (cent(1), cent(2),'r.','MarkerSize',20);  
     end
-hold off;
-%hold on
-%plot(x,y,'b','LineWidth',2)
-%hold off
-%plot(x(k),y(k));
 
-
-%    % Display acquired frame 
-%    imshow(rgbData)   
-%    hold on   
-%    0
-%    %plot a separation line
-%    x = [160, 160]; 
-%    y = [1, 240]; 
-%    plot (x, y)  
-%    % Plot vectors
-   % plot(optFlow ,'DecimationFactor',[5 5],'ScaleFactor',25)  
-%    
-
-%    
-%    hold off ;   
+    % Save windows content as .png
+    if(saveImages)    
+        saveas(gcf,['snapshots/image' num2str(nFrames) '.png']);   
+    end
+  
+    hold off;
    % Increment frame count
    nFrames = nFrames + 1;  
    pause(0.01)
 end
 
- if(saveImages)    
-    makeVideoFromImages(99);   
- end
+if(saveImages)    
+    makeVideoFromImages(nFrames-1);   
+end
 
 % Close figures
 close;
 % Release camera resource
 release(vidDevice);
-
-function triangulation(I)
-
- 
-P = gallery('uniformdata',[30 2],0);
-DT = delaunayTriangulation(P)
-IC = incenter(DT);
-triplot(DT)
-hold on
-plot(IC(:,1),IC(:,2),'*r')
-end
 
 function makeVideoFromImages(numberOfImages)
     writerObj = VideoWriter([datestr(now,'yyyy-mm-dd__HH-MM') '.mp4'],'MPEG-4');
