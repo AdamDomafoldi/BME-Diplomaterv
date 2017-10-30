@@ -51,36 +51,57 @@ while (nFrames<100)     % Process for the first selected amount frames
    leftImage = optFlow.Magnitude(1:height,1:width / 2 - 1);   
    rightImage = optFlow.Magnitude(1:height, width / 2:width);   
    
-   binaryRight = rightImage > 0.2;
-   binaryLeft = leftImage > 0.2;
+   binaryImage = optFlow.Magnitude > 1.5;
+ 
    
-   nL = nnz(binaryLeft);
-   nR = nnz(binaryRight);
+    
    
-   if(nR > 150)
-       disp('Jobb oldal')
-   end
-   
-   if(nL > 150)
-       disp('Bal oldal')
-   end  
+  % triangulation(binaryRight);
+  
+  [y, x] = find(binaryImage)  % x and y are column vectors.
 
-   % Display acquired frame 
-   imshow(rgbData)   
-   hold on   
+  
+ % x = gallery('uniformdata',30,1,1);
+%y = gallery('uniformdata',30,1,10);
+%plot(x,y,'.')
+ 
+%k = boundary(x,y);
    
-   %plot a separation line
-   x = [160, 160]; 
-   y = [1, 240]; 
-   plot (x, y)  
-   % Plot vectors
-   plot(optFlow ,'DecimationFactor',[5 5],'ScaleFactor',25)  
-   
-   if(saveImages)    
-    saveas(gcf,['snapshots/image' num2str(nFrames) '.png']);   
-   end
-   
-   hold off    
+j = boundary(x,y,1);
+%j = convhull(x,y);
+%A = polyarea(x,y)
+    imshow(rgbData)   
+    
+    cent = [mean(x) mean(y)]
+    
+    
+    
+hold on;
+plot(x(j),y(j));
+    if(saveImages)    
+     saveas(gcf,['snapshots/image' num2str(nFrames) '.png']);   
+    end
+hold off;
+%hold on
+%plot(x,y,'b','LineWidth',2)
+%hold off
+%plot(x(k),y(k));
+
+
+%    % Display acquired frame 
+%    imshow(rgbData)   
+%    hold on   
+%    0
+%    %plot a separation line
+%    x = [160, 160]; 
+%    y = [1, 240]; 
+%    plot (x, y)  
+%    % Plot vectors
+   % plot(optFlow ,'DecimationFactor',[5 5],'ScaleFactor',25)  
+%    
+
+%    
+%    hold off ;   
    % Increment frame count
    nFrames = nFrames + 1;  
    pause(0.01)
@@ -94,6 +115,17 @@ end
 close;
 % Release camera resource
 release(vidDevice);
+
+function triangulation(I)
+
+ 
+P = gallery('uniformdata',[30 2],0);
+DT = delaunayTriangulation(P)
+IC = incenter(DT);
+triplot(DT)
+hold on
+plot(IC(:,1),IC(:,2),'*r')
+end
 
 function makeVideoFromImages(numberOfImages)
     writerObj = VideoWriter([datestr(now,'yyyy-mm-dd__HH-MM') '.mp4'],'MPEG-4');
