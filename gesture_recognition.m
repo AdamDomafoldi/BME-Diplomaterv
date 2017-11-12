@@ -48,10 +48,10 @@ while (nFrames<100)     % Process for the first selected amount frames
     % Compute the optical flow for that particular frame.
     optFlow = estimateFlow(optical,rgb2gray(rgbData));
     % Filter pixels by magnitude
-    binaryImage = optFlow.Magnitude > 1.2;    
+    binaryImage = optFlow.Magnitude > 1.0;    
     [y, x] = find(binaryImage);  % x and y are column vectors.
     % Create single conforming 2-D boundary around the points
-    j = boundary(x,y,1);
+    j = boundary(x,y,0);
     % Display acquired camera frame 
     imshow(rgbData)       
     
@@ -60,8 +60,10 @@ while (nFrames<100)     % Process for the first selected amount frames
     plot(x(j),y(j));
    
     if(isempty(x) == 0 && isempty(y) == 0)
-        cent = [mean(x) mean(y)]
-        plot (cent(1), cent(2),'r.','MarkerSize',20);  
+        shape = regionprops(double(binaryImage), 'Centroid');
+        %shape.Centroid(1)
+       % cent = [mean(x) mean(y)]
+        plot (shape.Centroid(1), shape.Centroid(2),'r.','MarkerSize',20);  
     end
 
     % Save windows content as .png
