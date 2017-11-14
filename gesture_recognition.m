@@ -2,8 +2,8 @@
 % Get user input
 saveImages = input('Save images? 1 or 0: ');
 % Set resolution
-width = 320;
-height = 240; 
+width = 640;
+height = 480; 
 % Better use the existing camera object if it was used previously but the process
 % was aborted and it still exists.
 if exist('vidDevice', 'var') == 0
@@ -41,7 +41,7 @@ end
 
 % Set up for stream
 nFrames = 0;
-while (nFrames<200)     % Process for the first selected amount frames  
+while (nFrames<100)     % Process for the first selected amount frames  
     % Acquire single frame from imaging device.
     rawImage = step(vidDevice);
     % Mirror the image (flip the matrix by rows and columns)
@@ -53,7 +53,7 @@ while (nFrames<200)     % Process for the first selected amount frames
     binaryImage = optFlow.Magnitude > 1.0;    
     [y, x] = find(binaryImage);  % x and y are column vectors.
     % Create single conforming 2-D boundary around the points
-    j = boundary(x,y,1);
+    j = boundary(x,y,0);
     % Display acquired camera frame 
     imshow(rgbData)      
     
@@ -62,24 +62,22 @@ while (nFrames<200)     % Process for the first selected amount frames
     plot(x(j),y(j));        
         
     % Draw four circles   
-    for i = 1 : 1           
-        [cX,cY] = createCircle(width*0.25, height*(0.2+i*0.6), 45); 
+     
         
         if(isempty(x) == 0 && isempty(y) == 0)
-            shape = regionprops(double(binaryImage), 'Centroid');  
-            [in,on] = inpolygon(shape.Centroid(1),shape.Centroid(2),cX,cY);
-      
-            tmp = shape.Centroid(1);
+            shape = regionprops(double(binaryImage), 'Centroid'); 
+            [cX,cY] = createCircle(width*0.25, height*(0.2+i*0.6), 45);             
             
-            if numel(tmp(in))
-                numel(tmp(in))
-            end
+            isPointInCircle = isInCircle(shape.Centroid(1), shape.Centroid(2),cX,cY)          
             
             plot (shape.Centroid(1), shape.Centroid(2),'r.','MarkerSize',20); 
+            
+        else
+            [cX,cY] = createCircle(width*0.25, height*(0.2+i*0.6), 45);
         end
-          plot(cX,cY);
+        plot(cX,cY);
                       
-    end
+ 
     
     % Save windows content as .png
     if(saveImages)    
@@ -110,6 +108,11 @@ function [A,B] = createCircle(x,y,r)
     A = A.';
     B = B.';
 end 
+
+function isPointInCircle = isInCircle(pX,pY,cX,cY) 
+ [in,on] = inpolygon(pX,pY,cX,cY);                     
+ isPointInCircle = numel(pX(in));    
+end
 
 function makeVideoFromImages(numberOfImages)
     writerObj = VideoWriter([datestr(now,'yyyy-mm-dd__HH-MM') '.mp4'],'MPEG-4');
