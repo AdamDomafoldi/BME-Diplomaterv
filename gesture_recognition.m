@@ -16,6 +16,8 @@ if exist('vidDevice', 'var') == 0
                              'DeviceProperties.Sharpness', 5);
 end
 
+%%
+
 % Choose optical flow algorithm and customize it
 % returns an optical flow object used to estimate the direction and
 opticalFlowType = 'LK';
@@ -39,7 +41,7 @@ end
 
 % Set up for stream
 nFrames = 0;
-while (nFrames<100)     % Process for the first selected amount frames  
+while (nFrames<200)     % Process for the first selected amount frames  
     % Acquire single frame from imaging device.
     rawImage = step(vidDevice);
     % Mirror the image (flip the matrix by rows and columns)
@@ -51,21 +53,34 @@ while (nFrames<100)     % Process for the first selected amount frames
     binaryImage = optFlow.Magnitude > 1.0;    
     [y, x] = find(binaryImage);  % x and y are column vectors.
     % Create single conforming 2-D boundary around the points
-    j = boundary(x,y,0);
+    j = boundary(x,y,1);
     % Display acquired camera frame 
-    imshow(rgbData)       
+    imshow(rgbData)      
     
     hold on;
     % Plot boundary lines
-    plot(x(j),y(j));
-   
-    if(isempty(x) == 0 && isempty(y) == 0)
-        shape = regionprops(double(binaryImage), 'Centroid');
-        %shape.Centroid(1)
-       % cent = [mean(x) mean(y)]
-        plot (shape.Centroid(1), shape.Centroid(2),'r.','MarkerSize',20);  
+    plot(x(j),y(j));        
+        
+    % Draw four circles   
+    for i = 1 : 1           
+        [cX,cY] = createCircle(width*0.25, height*(0.2+i*0.6), 45); 
+        
+        if(isempty(x) == 0 && isempty(y) == 0)
+            shape = regionprops(double(binaryImage), 'Centroid');  
+            [in,on] = inpolygon(shape.Centroid(1),shape.Centroid(2),cX,cY);
+      
+            tmp = shape.Centroid(1);
+            
+            if numel(tmp(in))
+                numel(tmp(in))
+            end
+            
+            plot (shape.Centroid(1), shape.Centroid(2),'r.','MarkerSize',20); 
+        end
+          plot(cX,cY);
+                      
     end
-
+    
     % Save windows content as .png
     if(saveImages)    
         saveas(gcf,['snapshots/image' num2str(nFrames) '.png']);   
@@ -85,6 +100,16 @@ end
 close;
 % Release camera resource
 release(vidDevice);
+
+%%
+
+function [A,B] = createCircle(x,y,r)    
+    th = 0:pi/100:2*pi;
+    A = r*cos(th)+x;
+    B = r*sin(th)+y; 
+    A = A.';
+    B = B.';
+end 
 
 function makeVideoFromImages(numberOfImages)
     writerObj = VideoWriter([datestr(now,'yyyy-mm-dd__HH-MM') '.mp4'],'MPEG-4');
